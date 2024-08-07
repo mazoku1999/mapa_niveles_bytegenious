@@ -44,9 +44,8 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
         offset: const Offset(310, 900), isUnlocked: false, isCompleted: false),
     LevelNode(
         offset: const Offset(260, 980),
-        isUnlocked: false,
-        isCompleted: false,
-        isFinished: true),
+        isFinishedUnlocked: false,
+        isCompleted: false),
   ];
 
   @override
@@ -66,35 +65,7 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
                     double.infinity, 1080), // Ajustar tamaño del CustomPaint
                 painter: LevelMapPainter(nodes),
               ),
-              ...nodes.map(
-                (node) => Positioned(
-                  left: node.offset.dx - 20,
-                  top: node.offset.dy - 20,
-                  child: GestureDetector(
-                    onTap: node.isUnlocked
-                        ? () {
-                            print('Node tapped');
-                          }
-                        : null,
-                    child: CircleAvatar(
-                      radius: 20,
-                      backgroundColor: node.isCompleted
-                          ? Colors.green
-                          : node.isUnlocked
-                              ? Colors.orange
-                              : Colors.grey,
-                      child: node.isFinished == true
-                          ? const Icon(Icons.emoji_events, color: Colors.white)
-                          : node.isUnlocked
-                              ? node.isCompleted
-                                  ? const Icon(Icons.check, color: Colors.white)
-                                  : const Icon(Icons.play_arrow,
-                                      color: Colors.white)
-                              : const Icon(Icons.lock, color: Colors.white),
-                    ),
-                  ),
-                ),
-              )
+              ...nodes.map((node) => LevelNodeWidget(node: node)).toList(),
             ],
           ),
         ),
@@ -103,19 +74,69 @@ class _LevelMapScreenState extends State<LevelMapScreen> {
   }
 }
 
+class LevelNodeWidget extends StatelessWidget {
+  final LevelNode node;
+
+  const LevelNodeWidget({Key? key, required this.node}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      left: node.offset.dx - 20,
+      top: node.offset.dy - 20,
+      child: GestureDetector(
+        onTap: node.isUnlocked ? () => print('Node tapped') : null,
+        child: CircleAvatar(
+          radius: 20,
+          backgroundColor: _getNodeColor(node),
+          child: _getNodeIcon(node),
+        ),
+      ),
+    );
+  }
+
+  Color _getNodeColor(LevelNode node) {
+    if (node.isCompleted) {
+      return Colors.green;
+    } else if (node.isUnlocked || node.isFinishedUnlocked == true) {
+      return Colors.orange;
+    } else {
+      return Colors.grey;
+    }
+  }
+
+  Icon _getNodeIcon(LevelNode node) {
+    if (node.isFinishedUnlocked == true) {
+      if (node.isCompleted && node.isFinishedUnlocked == true) {
+        return const Icon(Icons.emoji_events_rounded, color: Colors.yellow);
+      } else {
+        return const Icon(Icons.emoji_events_rounded, color: Colors.white);
+      }
+    } else if (node.isUnlocked) {
+      if (node.isCompleted) {
+        return const Icon(Icons.check, color: Colors.white);
+      } else {
+        return const Icon(Icons.play_arrow, color: Colors.white);
+      }
+    } else if (node.isUnlocked == false && node.isFinishedUnlocked == false) {
+      return const Icon(Icons.emoji_events_rounded, color: Colors.white);
+    } else {
+      return const Icon(Icons.lock, color: Colors.white);
+    }
+  }
+}
+
 class LevelNode {
   final Offset offset;
   final bool isUnlocked;
   final bool isCompleted;
-  //No obligatoria
-  bool? isFinished = false;
+  final bool? isFinishedUnlocked;
 
   LevelNode({
     required this.offset,
     this.isUnlocked = false,
     this.isCompleted = false,
-    //No obligatoria pero se puede usar
-    this.isFinished,
+    this.isFinishedUnlocked,
   });
 }
 
